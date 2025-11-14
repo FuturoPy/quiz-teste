@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Escolar 🎓</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Comic Sans MS", Arial, sans-serif;
+  background-color: black;
+  overflow: hidden;
+}
+
+/* Tela Inicial */
+#tela-inicial {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/unnamed.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  transition: opacity 1s ease;
+}
+
+#particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; 
+  z-index: 1;
+}
+
+/* START fixo */
+#start-btn {
+  position: fixed;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+  background-color: rgba(0,0,0,0.6);
+  border: none;
+  border-radius: 15px;
+  padding: 20px 60px;
+  cursor: pointer;
+  transition: 0.3s;
+  z-index: 10;
+}
+#start-btn:hover { color: #00ffff; }
+
+/* Quiz */
+.quiz-container {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  background-image: url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/Captura%20de%20tela%202025-11-13%20224304.png');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.area-jogo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+}
+
+/* Professor */
+.professor {
+  width: 350px;   
+  height: 450px;  
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  animation: idle 3s ease-in-out infinite;
+  display: none;
+}
+
+@keyframes idle { 0% { transform: translateY(0); } 50% { transform: translateY(-4px);} 100%{transform:translateY(0);} }
+@keyframes shake {0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
+@keyframes jump {0%{transform:translateY(0)}30%{transform:translateY(-18px)}60%{transform:translateY(0)}100%{transform:translateY(0)}}
+
+/* Quadro virtual */
+.quadro-fundo {
+  width: 600px;      
+  height: 400px;     
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;    
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px black, 0 0 3px white; 
+  padding: 20px;
+}
+
+#question {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+#answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center;  
+  justify-content: center;
+}
+
+#answers button {
+  background-color: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff30;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center; 
+  transition: 0.3s;
+  width: 80%;
+}
+#answers button:hover {
+  background-color: rgba(255,255,255,0.2);
+  transform: scale(1.05);
+}
+
+.feedback {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 15px;
+  text-shadow: 1px 1px 2px black, 0 0 3px white;
+}
+.correct { color: #00ff99; }
+.wrong { color: #ff9999; }
+</style>
+</head>
+<body>
+
+<!-- Tela Inicial -->
+<div id="tela-inicial">
+  <canvas id="particles"></canvas>
+</div>
+<button id="start-btn">START</button>
+
+<!-- Quiz -->
+<div class="quiz-container" id="quiz-container">
+  <div class="area-jogo">
+    <div class="professor" id="professor"></div>
+    <div class="quadro-fundo">
+      <div id="question"></div>
+      <div id="answers"></div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// PARTICULAS
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+let mouse = { x: null, y: null };
+window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+
+class Particle {
+  constructor(){
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = Math.random() * 3 + 1;
+    this.baseSize = this.size;
+    this.speedX = (Math.random() - 0.5) * 1.5;
+    this.speedY = (Math.random() - 0.5) * 1.5;
+    this.opacity = Math.random() * 0.6 + 0.3;
+    this.baseOpacity = this.opacity;
+  }
+  update(){
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if(this.x<0||this.x>canvas.width) this.speedX*=-1;
+    if(this.y<0||this.y>canvas.height) this.speedY*=-1;
+    if(mouse.x && mouse.y){
+      let dx = mouse.x - this.x;
+      let dy = mouse.y - this.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist<100){ this.size=this.baseSize+(100-dist)/20; this.opacity=Math.min(1,this.baseOpacity+(100-dist)/150); }
+      else { this.size=this.baseSize; this.opacity=this.baseOpacity; }
+    }
+  }
+  draw(){ ctx.fillStyle = `rgba(255,255,255,${this.opacity})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); }
+}
+
+const particlesArray=[];
+for(let i=0;i<120;i++) particlesArray.push(new Particle());
+function animateParticles(){ ctx.clearRect(0,0,canvas.width,canvas.height); particlesArray.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animateParticles); }
+animateParticles();
+
+// QUIZ
+let imgProfessor = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/apontarrr.png";
+let imgFrames = [
+  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/frame%201.png",
+  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/frame%202.png",
+  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/frame%203.png"
+];
+let imgCerta = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/isso.png";
+let imgErrada = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/tristeeeee.png";
+let imgConquista = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/Captura%20de%20tela%202025-11-14%20003933.png";
+
+// Perguntas fáceis e tranquilas
+const perguntas = [
+  { pergunta: "Qual a cor do céu?", opcoes: ["Azul", "Verde", "Vermelho"], certa: 0 },
+  { pergunta: "Quanto é 2 + 2?", opcoes: ["3", "4", "5"], certa: 1 },
+  { pergunta: "Qual animal mia?", opcoes: ["Cachorro", "Gato", "Pato"], certa: 1 },
+  { pergunta: "Qual fruta é amarela?", opcoes: ["Banana", "Maçã", "Uva"], certa: 0 },
+  { pergunta: "Quantos dedos temos em uma mão?", opcoes: ["4", "5", "6"], certa: 1 },
+
+  { pergunta: "Qual a cor da grama?", opcoes: ["Verde", "Azul", "Amarelo"], certa: 0 },
+  { pergunta: "Quanto é 1 + 1?", opcoes: ["2", "3", "1"], certa: 0 },
+  { pergunta: "Qual animal tem tromba?", opcoes: ["Elefante", "Leão", "Cachorro"], certa: 0 },
+  { pergunta: "Qual fruta é vermelha?", opcoes: ["Morango", "Banana", "Uva"], certa: 0 },
+  { pergunta: "Qual é o número após 3?", opcoes: ["2", "4", "5"], certa: 1 },
+
+  { pergunta: "Qual planeta é vermelho?", opcoes: ["Marte", "Terra", "Júpiter"], certa: 0 },
+  { pergunta: "Qual animal voa?", opcoes: ["Gato", "Pássaro", "Peixe"], certa: 1 },
+  { pergunta: "Qual dia vem depois de segunda?", opcoes: ["Domingo", "Terça", "Quarta"], certa: 1 },
+  { pergunta: "Qual cor é do sol?", opcoes: ["Amarelo", "Azul", "Verde"], certa: 0 },
+  { pergunta: "Quantos meses tem um ano?", opcoes: ["10", "12", "11"], certa: 1 },
+
+  { pergunta: "Qual instrumento tem teclas pretas e brancas?", opcoes: ["Guitarra", "Piano", "Bateria"], certa: 1 },
+  { pergunta: "Qual animal tem casco?", opcoes: ["Tartaruga", "Cavalo", "Pato"], certa: 0 },
+  { pergunta: "Qual cor da laranja?", opcoes: ["Laranja", "Vermelho", "Rosa"], certa: 0 },
+  { pergunta: "Qual animal late?", opcoes: ["Gato", "Cachorro", "Cavalo"], certa: 1 },
+  { pergunta: "Quanto é 5 + 3?", opcoes: ["7", "8", "9"], certa: 1 },
+
+  // Novas perguntas fáceis
+  { pergunta: "Qual líquido bebemos todos os dias?", opcoes: ["Água", "Óleo", "Leite de coco"], certa: 0 },
+  { pergunta: "Qual cor tem o limão?", opcoes: ["Amarelo", "Roxo", "Preto"], certa: 0 },
+  { pergunta: "Qual animal é famoso por 'correr muito rápido'?", opcoes: ["Cavalo", "Tartaruga", "Leão"], certa: 0 },
+  { pergunta: "Qual fruta é pequena e vermelha?", opcoes: ["Morango", "Banana", "Abacaxi"], certa: 0 },
+  { pergunta: "Qual número vem antes do 5?", opcoes: ["4", "6", "7"], certa: 0 }
+];
+
+let indice = 0;
+let pontuacao = 0;
+let escreverVelocidade = 100;
+let professorEl = document.getElementById("professor");
+let feedback = document.getElementById("feedback");
+let quizContainer = document.getElementById("quiz-container");
+let telaInicial = document.getElementById("tela-inicial");
+let startBtn = document.getElementById("start-btn");
+
+startBtn.onclick = () => {
+  telaInicial.style.opacity = 0;
+  startBtn.style.opacity = 0;
+  setTimeout(()=>{
+    telaInicial.style.display="none";
+    startBtn.style.display="none";
+    quizContainer.style.display="flex";
+    setTimeout(()=>quizContainer.style.opacity=1,50);
+    professorEl.style.display="block";
+    mostrarPergunta();
+  },1000);
+};
+
+let escreverIntervalo = null;
+async function escreverNoQuadro(elemento,texto){
+  elemento.textContent="";
+  if(escreverIntervalo) clearInterval(escreverIntervalo);
+  return new Promise(resolve=>{
+    let i=0;
+    let frameIndex=0;
+    escreverIntervalo=setInterval(()=>{
+      elemento.textContent+=texto[i];
+      professorEl.style.backgroundImage=`url(${imgFrames[frameIndex]})`;
+      frameIndex=(frameIndex+1)%imgFrames.length;
+      i++;
+      if(i>=texto.length){
+        clearInterval(escreverIntervalo);
+        escreverIntervalo=null;
+        professorEl.style.backgroundImage=`url(${imgProfessor})`;
+        resolve();
+      }
+    },escreverVelocidade);
+  });
+}
+
+async function mostrarPergunta(){
+  const q=perguntas[indice];
+  const respostasDiv=document.getElementById("answers");
+  respostasDiv.innerHTML="";
+  feedback.textContent="";
+  await escreverNoQuadro(document.getElementById("question"),q.pergunta);
+
+  q.opcoes.forEach((opcao)=>{
+    const btn=document.createElement("button");
+    btn.textContent=opcao;
+    btn.onclick=()=>checkAnswer(q.opcoes.indexOf(opcao)===q.certa);
+    respostasDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(certa){
+  if(certa){
+    pontuacao++;
+    feedback.textContent="Muito bem!";
+    feedback.className="feedback correct";
+    professorEl.style.backgroundImage=`url(${imgCerta})`;
+    professorEl.style.animation="jump 0.6s";
+    setTimeout(()=>{
+      professorEl.style.animation="idle 3s ease-in-out infinite";
+      indice++;
+      if(indice<perguntas.length) mostrarPergunta();
+      else mostrarFim();
+    },600);
+  } else{
+    feedback.textContent="Tente novamente!";
+    feedback.className="feedback wrong";
+    professorEl.style.backgroundImage=`url(${imgErrada})`;
+    professorEl.style.animation="shake 0.5s";
+    setTimeout(()=>{
+      professorEl.style.animation="idle 3s ease-in-out infinite";
+      professorEl.style.backgroundImage=`url(${imgProfessor})`;
+    },500);
+  }
+}
+
+function mostrarFim(){
+  quizContainer.innerHTML="";
+  let fimDiv=document.createElement("div");
+  fimDiv.style.textAlign="center";
+  fimDiv.style.color="#ffffff";
+  fimDiv.style.fontSize="28px";
+  fimDiv.innerHTML=`Parabéns! Você terminou o quiz!<br>Pontuação: ${pontuacao} / ${perguntas.length}`;
+  if(pontuacao===perguntas.length){
+    let img=document.createElement("img");
+    img.src=imgConquista;
+    img.style.width="300px";
+    img.style.marginTop="20px";
+    fimDiv.innerHTML+="<br>Você desbloqueou uma conquista!";
+    fimDiv.appendChild(img);
+  }
+  quizContainer.appendChild(fimDiv);
+}
+</script>
+</body>
+</html>
