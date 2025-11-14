@@ -6,27 +6,14 @@
 <title>Quiz Escolar 🎓</title>
 <style>
 body { margin:0; padding:0; font-family:"Comic Sans MS", Arial, sans-serif; background-color:black; overflow:hidden; }
-
 /* Tela Inicial */
-#tela-inicial {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/inico%20de%20tela.png');
-  background-size:cover; background-position:center; z-index:0; transition:opacity 1s ease;
-}
+#tela-inicial { position: fixed; top:0; left:0; width:100%; height:100%; background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/inico%20de%20tela.png'); background-size:cover; background-position:center; z-index:0; transition:opacity 1s ease; }
 #particles { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
-#start-btn {
-  position: fixed; top:55%; left:50%; transform:translate(-50%,-50%);
-  font-size:36px; font-weight:bold; color:white; background-color: rgba(0,0,0,0.6);
-  border:none; border-radius:15px; padding:20px 60px; cursor:pointer; transition:0.3s; z-index:10;
-}
+#start-btn { position: fixed; top:55%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:bold; color:white; background-color: rgba(0,0,0,0.6); border:none; border-radius:15px; padding:20px 60px; cursor:pointer; transition:0.3s; z-index:10; }
 #start-btn:hover{ color:#00ffff; }
 
 /* Quiz */
-.quiz-container {
-  display:none; width:100%; height:100vh;
-  background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/sala%20de%20aulas.png');
-  background-size:cover; background-position:center; display:flex; justify-content:center; align-items:center; opacity:0; transition:opacity 1s ease;
-}
+.quiz-container { display:none; width:100%; height:100vh; background-image:url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/sala%20de%20aulas.png'); background-size:cover; background-position:center; display:flex; justify-content:center; align-items:center; opacity:0; transition:opacity 1s ease; }
 .area-jogo { display:flex; justify-content:center; align-items:center; gap:50px; }
 .professor { width:350px; height:450px; background-size:contain; background-repeat:no-repeat; background-position:bottom center; animation: idle 3s ease-in-out infinite; display:none; }
 @keyframes idle{0%{transform:translateY(0);}50%{transform:translateY(-4px);}100%{transform:translateY(0);} }
@@ -48,6 +35,7 @@ body { margin:0; padding:0; font-family:"Comic Sans MS", Arial, sans-serif; back
 #cadastro-perguntas { display:none; position:fixed; top:10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; padding:20px; border-radius:15px; z-index:20; max-height:60vh; overflow-y:auto; }
 #cadastro-perguntas input, #cadastro-perguntas select { margin:5px; padding:5px; border-radius:5px; border:none; }
 #cadastro-perguntas button { margin-top:5px; padding:5px 10px; border-radius:10px; cursor:pointer; }
+#btn-sair-edicao { position: fixed; top: 8px; right: 8px; padding: 10px 14px; background-color: #ff4444; color: #fff; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; z-index: 99999; display: none; }
 </style>
 </head>
 <body>
@@ -76,6 +64,9 @@ body { margin:0; padding:0; font-family:"Comic Sans MS", Arial, sans-serif; back
   <button onclick="adicionarPergunta()">Adicionar Pergunta</button>
 </div>
 
+<!-- Botão sair edição -->
+<button id="btn-sair-edicao" onclick="sairEdicao()">SAIR</button>
+
 <div class="quiz-container" id="quiz-container">
   <div class="area-jogo">
     <div class="professor" id="professor"></div>
@@ -93,62 +84,58 @@ const canvas = document.getElementById("particles"), ctx = canvas.getContext("2d
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
 let mouse={x:null,y:null}; window.addEventListener('mousemove',e=>{mouse.x=e.x; mouse.y=e.y;});
-
-class Particle{
-  constructor(){
-    this.x=Math.random()*canvas.width; this.y=Math.random()*canvas.height;
-    this.size=Math.random()*2+1; this.baseSize=this.size;
-    this.speedX=(Math.random()-0.5)*0.5; this.speedY=(Math.random()-0.5)*0.5;
-    this.opacity=Math.random()*0.7+0.3; this.baseOpacity=this.opacity;
-  }
-  update(){
-    this.x+=this.speedX; this.y+=this.speedY;
-    if(this.x<0||this.x>canvas.width) this.speedX*=-1;
-    if(this.y<0||this.y>canvas.height) this.speedY*=-1;
-    if(mouse.x && mouse.y){
-      let dx=mouse.x-this.x, dy=mouse.y-this.y, dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<100){ this.size=this.baseSize+(100-dist)/30; this.opacity=Math.min(1,this.baseOpacity+(100-dist)/100);}
-      else{this.size=this.baseSize; this.opacity=this.baseOpacity;}
-    }
-  }
-  draw(){ ctx.fillStyle=`rgba(255,255,150,${this.opacity})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill();}
-}
+class Particle{constructor(){this.x=Math.random()*canvas.width;this.y=Math.random()*canvas.height;this.size=Math.random()*2+1;this.baseSize=this.size;this.speedX=(Math.random()-0.5)*0.5;this.speedY=(Math.random()-0.5)*0.5;this.opacity=Math.random()*0.7+0.3;this.baseOpacity=this.opacity;}update(){this.x+=this.speedX;this.y+=this.speedY;if(this.x<0||this.x>canvas.width)this.speedX*=-1;if(this.y<0||this.y>canvas.height)this.speedY*=-1;if(mouse.x&&mouse.y){let dx=mouse.x-this.x,dy=mouse.y-this.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<100){this.size=this.baseSize+(100-dist)/30;this.opacity=Math.min(1,this.baseOpacity+(100-dist)/100);}else{this.size=this.baseSize;this.opacity=this.baseOpacity;}}}draw(){ctx.fillStyle=`rgba(255,255,150,${this.opacity})`;ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();}}
 const particlesArray=[]; for(let i=0;i<80;i++) particlesArray.push(new Particle());
-function animateParticles(){ctx.clearRect(0,0,canvas.width,canvas.height); particlesArray.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animateParticles);}
+function animateParticles(){ctx.clearRect(0,0,canvas.width,canvas.height);particlesArray.forEach(p=>{p.update();p.draw();});requestAnimationFrame(animateParticles);}
 animateParticles();
 
 // PROFESSORA
-let imgFrames=[
-  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%201.png",
-  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%202.png",
-  "https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%203.png"
-];
+let imgFrames=["https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%201.png","https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%202.png","https://uploads.onecompiler.io/444jywmud/444jyqxv3/professora%20frame%203.png"];
 let imgCerta="https://uploads.onecompiler.io/444jywmud/444jyqxv3/joinhaa.png";
 let imgErrada="https://uploads.onecompiler.io/444jywmud/444jyqxv3/errada.png";
 
 let perguntas=[], indice=0, pontuacao=0, escreverVelocidade=100;
 let professorEl=document.getElementById("professor"); let feedback=document.getElementById("feedback"); 
 let quizContainer=document.getElementById("quiz-container"); let telaInicial=document.getElementById("tela-inicial"); 
-let startBtn=document.getElementById("start-btn");
+let startBtn=document.getElementById("start-btn"); 
+const btnSair = document.getElementById("btn-sair-edicao");
+
+// --- Funções para salvar e carregar ---
+function salvarPerguntas(){ localStorage.setItem("perguntasQuiz", JSON.stringify(perguntas)); }
+function carregarPerguntas(){ const dados = localStorage.getItem("perguntasQuiz"); if(dados){ perguntas=JSON.parse(dados); atualizarCadastro(); } }
+carregarPerguntas();
 
 // Login professor
 function entrarProfessor(){
   const senha=document.getElementById("senha-professor").value;
-  if(senha==="1234"){ document.getElementById("cadastro-perguntas").style.display="block"; }
+  if(senha==="1234"){
+    document.getElementById("cadastro-perguntas").style.display="block";
+    btnSair.style.display = 'block';
+    document.getElementById("professor-login").style.display="none";
+  }
+}
+
+// Sair do modo edição
+function sairEdicao(){
+  document.getElementById("cadastro-perguntas").style.display="none";
+  document.getElementById("professor-login").style.display="block";
+  document.getElementById("senha-professor").value="";
+  btnSair.style.display = 'none';
 }
 
 // Adicionar pergunta
 function adicionarPergunta(){
-  const pergunta=document.getElementById("nova-pergunta").value;
-  const opcoes=[document.getElementById("alt1").value,document.getElementById("alt2").value,document.getElementById("alt3").value];
-  const certa=parseInt(document.getElementById("certa").value);
-  if(!pergunta||opcoes.some(o=>o==="")) return alert("Preencha todos os campos!");
+  const pergunta = document.getElementById("nova-pergunta").value;
+  const opcoes = [document.getElementById("alt1").value,document.getElementById("alt2").value,document.getElementById("alt3").value];
+  const certa = parseInt(document.getElementById("certa").value);
+  if(!pergunta || opcoes.some(o=>o==="")) return alert("Preencha todos os campos!");
   perguntas.push({pergunta,opcoes,certa});
   document.getElementById("nova-pergunta").value=""; document.getElementById("alt1").value=""; document.getElementById("alt2").value=""; document.getElementById("alt3").value="";
   atualizarCadastro();
+  salvarPerguntas();
 }
 
-// Atualiza cadastro
+// Atualiza cadastro e permite edição/remover
 function atualizarCadastro(){
   const cadastro=document.getElementById("cadastro-perguntas");
   cadastro.querySelectorAll("div.pergunta-item")?.forEach(el=>el.remove());
@@ -166,6 +153,7 @@ function atualizarCadastro(){
       document.getElementById("certa").value=p.certa;
       perguntas.splice(i,1);
       atualizarCadastro();
+      salvarPerguntas();
     }
     cadastro.appendChild(div);
   });
@@ -179,6 +167,7 @@ startBtn.onclick=()=>{
     telaInicial.style.display="none"; 
     document.getElementById("professor-login").style.display="none"; 
     document.getElementById("cadastro-perguntas").style.display="none";
+    btnSair.style.display = 'none';
     quizContainer.style.display="flex"; setTimeout(()=>quizContainer.style.opacity=1,50); professorEl.style.display="block"; mostrarPergunta();
   },1000);
 };
@@ -204,118 +193,44 @@ async function mostrarPergunta(){
   q.opcoes.forEach((opcao,i)=>{ const btn=document.createElement("button"); btn.textContent=opcao; btn.onclick=()=>checkAnswer(i===q.certa); respostasDiv.appendChild(btn); });
 }
 
-// Corrigido: professora sem glitch
 function checkAnswer(certa){
-  professorEl.style.animation = ""; // remove animação antiga
+  professorEl.style.animation = "";
   if(certa){
-    pontuacao++;
-    feedback.textContent="Muito bem!";
-    feedback.className="feedback correct";
-    professorEl.style.backgroundImage=`url(${imgCerta})`;
-    professorEl.style.animation="jump 0.6s";
-    setTimeout(()=>{
-      professorEl.style.animation="idle 3s ease-in-out infinite";
-      professorEl.style.backgroundImage=`url(${imgFrames[0]})`;
-      indice++;
-      if(indice<perguntas.length) mostrarPergunta(); else mostrarFim();
-    },600);
+    pontuacao++; feedback.textContent="Muito bem!"; feedback.className="feedback correct";
+    professorEl.style.backgroundImage=`url(${imgCerta})`; professorEl.style.animation="jump 0.6s";
+    setTimeout(()=>{ professorEl.style.animation="idle 3s ease-in-out infinite"; professorEl.style.backgroundImage=`url(${imgFrames[0]})`; indice++; if(indice<perguntas.length) mostrarPergunta(); else mostrarFim(); },600);
   } else {
-    feedback.textContent="Tente novamente!";
-    feedback.className="feedback wrong";
-    professorEl.style.backgroundImage=`url(${imgErrada})`;
-    professorEl.style.animation="shake 0.5s";
-    setTimeout(()=>{
-      professorEl.style.animation="idle 3s ease-in-out infinite";
-      professorEl.style.backgroundImage=`url(${imgFrames[0]})`;
-      indice++;
-      if(indice<perguntas.length) mostrarPergunta(); else mostrarFim();
-    },500);
+    feedback.textContent="Tente novamente!"; feedback.className="feedback wrong";
+    professorEl.style.backgroundImage=`url(${imgErrada})`; professorEl.style.animation="shake 0.5s";
+    setTimeout(()=>{ professorEl.style.animation="idle 3s ease-in-out infinite"; professorEl.style.backgroundImage=`url(${imgFrames[0]})`; indice++; if(indice<perguntas.length) mostrarPergunta(); else mostrarFim(); },500);
   }
 }
 
 // Mostrar fim
 function mostrarFim(){
   quizContainer.style.display = "none";
-
-  if(pontuacao === perguntas.length){
-    // Tela de conquista
-    let fimDiv = document.createElement("div");
-    fimDiv.style.position = "fixed";
-    fimDiv.style.top = "0";
-    fimDiv.style.left = "0";
-    fimDiv.style.width = "100%";
-    fimDiv.style.height = "100%";
-    fimDiv.style.display = "flex";
-    fimDiv.style.flexDirection = "column";
-    fimDiv.style.justifyContent = "center";
-    fimDiv.style.alignItems = "center";
-    fimDiv.style.backgroundImage = "url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/tela%20final.png')";
-    fimDiv.style.backgroundSize = "cover";
-    fimDiv.style.backgroundPosition = "center";
-    fimDiv.style.color = "white";
-    fimDiv.style.fontSize = "28px";
-    fimDiv.id = "tela-fim";
-
-    fimDiv.innerHTML = "Parabéns! Você desbloqueou uma conquista: <b>Nota 10</b><br>";
-
-    let imgConquista = document.createElement("img");
-    imgConquista.src = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/Captura%20de%20tela%202025-11-14%20003933.png";
-    imgConquista.style.width = "200px";
-    imgConquista.style.marginTop = "15px";
-    fimDiv.appendChild(imgConquista);
-
-    let btnVoltar = document.createElement("img");
-    btnVoltar.src = "https://uploads.onecompiler.io/444jywmud/444jyqxv3/botao%20de%20voltar.png";
-    btnVoltar.style.width = "200px";
-    btnVoltar.style.cursor = "pointer";
-    btnVoltar.style.marginTop = "50px";
-    btnVoltar.onclick = () => {
-      fimDiv.remove();
-      resetarJogo();
-    };
+  if(pontuacao===perguntas.length){
+    let fimDiv=document.createElement("div");
+    fimDiv.style.position="fixed"; fimDiv.style.top="0"; fimDiv.style.left="0"; fimDiv.style.width="100%"; fimDiv.style.height="100%"; fimDiv.style.display="flex"; fimDiv.style.flexDirection="column"; fimDiv.style.justifyContent="center"; fimDiv.style.alignItems="center"; fimDiv.style.backgroundImage="url('https://uploads.onecompiler.io/444jywmud/444jyqxv3/tela%20final.png')"; fimDiv.style.backgroundSize="cover"; fimDiv.style.backgroundPosition="center"; fimDiv.style.color="white"; fimDiv.style.fontSize="28px"; fimDiv.id="tela-fim";
+    fimDiv.innerHTML="Parabéns! Você desbloqueou uma conquista: <b>Nota 10</b><br>";
+    let imgConquista=document.createElement("img"); imgConquista.src="https://uploads.onecompiler.io/444jywmud/444jyqxv3/Captura%20de%20tela%202025-11-14%20003933.png"; imgConquista.style.width="200px"; imgConquista.style.marginTop="15px"; fimDiv.appendChild(imgConquista);
+    let btnVoltar=document.createElement("img"); btnVoltar.src="https://uploads.onecompiler.io/444jywmud/444jyqxv3/botao%20de%20voltar.png"; btnVoltar.style.width="200px"; btnVoltar.style.cursor="pointer"; btnVoltar.style.marginTop="50px"; btnVoltar.onclick=()=>{ fimDiv.remove(); resetarJogo(); };
     fimDiv.appendChild(btnVoltar);
-
     document.body.appendChild(fimDiv);
-  } else {
-    // Se não acertou tudo, volta direto para a tela inicial
-    resetarJogo();
-  }
+  } else resetarJogo();
 }
 
-// Função para resetar o jogo e voltar para a tela inicial
+// Resetar jogo
 function resetarJogo(){
-  telaInicial.style.display = "block";
-  telaInicial.style.opacity = 1;
-  startBtn.style.opacity = 1;
-
-  indice = 0;
-  pontuacao = 0;
-
-  professorEl.style.display = "block";
-  professorEl.style.backgroundImage = `url(${imgFrames[0]})`;
-  professorEl.style.animation = "idle 3s ease-in-out infinite";
-
-  document.getElementById("question").textContent = "";
-  document.getElementById("answers").innerHTML = "";
-  feedback.textContent = "";
-
-  // Remove qualquer tela de fim que esteja no DOM
-  const fimExistente = document.getElementById("tela-fim");
-  if(fimExistente) fimExistente.remove();
+  telaInicial.style.display="block"; telaInicial.style.opacity=1; startBtn.style.opacity=1;
+  indice=0; pontuacao=0;
+  professorEl.style.display="block"; professorEl.style.backgroundImage=`url(${imgFrames[0]})`; professorEl.style.animation="idle 3s ease-in-out infinite";
+  document.getElementById("question").textContent=""; document.getElementById("answers").innerHTML=""; feedback.textContent="";
+  const fimExistente=document.getElementById("tela-fim"); if(fimExistente) fimExistente.remove();
 }
 
 // ESC para sair do modo professor
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const cadastro = document.getElementById("cadastro-perguntas");
-        const login = document.getElementById("professor-login");
-        const senhaInput = document.getElementById("senha-professor");
-
-        cadastro.style.display = "none";
-        login.style.display = "block";
-        senhaInput.value = "";
-    }
-});
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ sairEdicao(); } });
 </script>
 </body>
 </html>
